@@ -19,4 +19,12 @@ class LoggingAspect {
                 FILE_APPEND
             );
         }
+    public static function jobLog($message)
+        {
+            file_put_contents(
+                storage_path('logs/job.log'),
+                $message . PHP_EOL,
+                FILE_APPEND
+            );
+        }
 }
