@@ -81,6 +81,7 @@ class OrderService
         $order->update(['total' => $total]);
 
         $this->processPayment($order);
+        
         $this->cartService->clearCart($user);
 
         return $order->load('items.product');
@@ -167,9 +168,6 @@ class OrderService
      */
     protected function processPayment($order)
     {
-        // 🔥 Later this becomes async (queue)
-
-        // Simulate success
         $success = true;
 
         if (!$success) {

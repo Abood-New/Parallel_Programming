@@ -5,7 +5,7 @@ export let options = {
   iterations: 1,
 };
 
-const BASE_URL = 'http://localhost:8000/api/v1/orders/checkout?mode=unsafe';
+const BASE_URL = 'http://localhost:8000/api/v1/orders/checkout';
 
 const tokens = [
   'Y6e55H5xu37I4qOmRzVFahTcfSa6UiL5EsucxgWC3edd1342',
