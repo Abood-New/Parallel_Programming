@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Aspects\LoggingAspect;
+use App\Aspects\NotificationAspect;
 use App\Aspects\TransactionAspect;
+use App\Jobs\SendOrderEmailJob;
 use App\Services\CartService;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -23,13 +25,13 @@ class OrderService
      */
     public function checkout($user, $mode = 'safe')
     {
-        if($mode == 'unsafe'){
+        if ($mode == 'unsafe') {
             LoggingAspect::unsafeLog("=== STARTING UNSAFE CHECKOUT {$user->id} AT " . microtime(true) . " ===");
         } else {
             LoggingAspect::safeLog("=== STARTING SAFE CHECKOUT {$user->id} AT " . microtime(true) . " ===");
         }
         return TransactionAspect::handle(fn() =>
-        $mode == 'unsafe' ? $this->processOrderUnsafe($user) : $this->processOrderSafe($user));
+            $mode == 'unsafe' ? $this->processOrderUnsafe($user) : $this->processOrderSafe($user));
     }
     private function processOrderUnsafe($user)
     {
@@ -75,14 +77,20 @@ class OrderService
         $total = 0;
 
         foreach ($cart->items as $item) {
-            $this->processItem($item, $order, $total);
+            $total = $this->processItem($item, $order, $total);
         }
-
-        $order->update(['total' => $total]);
-
-        $this->processPayment($order);
         
+
+        // $order->update(['total' => $total]);
+
+        $order->total = $total;
+        $order->save();
+        
+        $this->processPayment($order);
+
         $this->cartService->clearCart($user);
+
+        NotificationAspect::afterOrderCreated($order);
 
         return $order->load('items.product');
     }
@@ -128,6 +136,7 @@ class OrderService
         $this->createOrderItem($product, $item, $order);
 
         $total += $product->price * $item->quantity;
+        return $total;
     }
     private function lockAndFetchProduct($productId)
     {
