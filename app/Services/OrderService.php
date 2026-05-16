@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
@@ -50,13 +51,16 @@ class OrderService
         $total = 0;
 
         foreach ($cart->items as $item) {
-            $this->processItemUnsafe($item, $order, $total);
+            $total = $this->processItemUnsafe($item, $order, $total);
         }
 
-        $order->update(['total' => $total]);
+        $order->total = $total;
+        $order->save();
 
         $this->processPayment($order);
         $this->cartService->clearCart($user);
+
+        NotificationAspect::afterOrderCreated($order);
 
         return $order->load('items.product');
     }
@@ -79,13 +83,10 @@ class OrderService
         foreach ($cart->items as $item) {
             $total = $this->processItem($item, $order, $total);
         }
-        
-
-        // $order->update(['total' => $total]);
 
         $order->total = $total;
         $order->save();
-        
+
         $this->processPayment($order);
 
         $this->cartService->clearCart($user);
@@ -94,7 +95,7 @@ class OrderService
 
         return $order->load('items.product');
     }
-    private function processItemUnsafe($item, $order, &$total)
+    private function processItemUnsafe($item, $order, $total)
     {
         $product = Product::find($item->product_id);
 
@@ -124,14 +125,24 @@ class OrderService
         ]);
 
         $total += $product->price * $item->quantity;
+        return $total;
     }
     private function processItem($item, $order, &$total)
     {
-        $product = $this->lockAndFetchProduct($item->product_id);
+        // $product = $this->lockAndFetchProduct($item->product_id);
 
-        $this->validateStock($product, $item);
+        $updated = Product::where('id', $item->product_id)
+            ->where('stock', '>', 0)
+            ->decrement('stock', 1);
+        if (!$updated) {
+            throw new Exception("Out of stock");
+        }
 
-        $this->updateStock($product, $item);
+        $product = Product::find($item->product_id);
+
+        // $this->validateStock($product, $item);
+
+        // $this->updateStock($product, $item);
 
         $this->createOrderItem($product, $item, $order);
 

@@ -28,7 +28,7 @@ class ProductController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        $products = $query->paginate(10);
+        $products = $query->get();
 
         return response()->json([
             'status' => 'success',
