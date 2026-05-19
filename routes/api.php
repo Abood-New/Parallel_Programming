@@ -28,14 +28,14 @@ Route::prefix('v1')->group(function () {
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     });
 });
-Route::middleware(['auth:sanctum','throttle:api'])->prefix('v1/cart')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('v1/cart')->group(function () {
     Route::get('/', [CartController::class, 'index']);
     Route::post('/add', [CartController::class, 'add']);
     Route::put('/update/{id}', [CartController::class, 'update']);
     Route::delete('/remove/{id}', [CartController::class, 'remove']);
     Route::delete('/clear', [CartController::class, 'clear']);
 });
-Route::middleware(['auth:sanctum','throttle:api'])->post(
+Route::middleware(['auth:sanctum'])->post(
     '/v1/orders/checkout',
     [OrderController::class, 'checkout']
 );
@@ -44,4 +44,10 @@ Route::middleware(['auth:sanctum','throttle:api'])->post(
 Route::get('/redis',function(){
     Redis::Set('name','mohee');
     return Redis::get('name');
+});
+Route::get('/server-check', function () {
+    return [
+        'pid' => getmypid(),
+        'port' => request()->server('SERVER_PORT'),
+    ];
 });

@@ -7,13 +7,7 @@ export let options = {
 
 const BASE_URL = 'http://localhost:8000/api/v1/orders/checkout?mode=unsafe';
 
-const tokens = [
-    'QdpWT3AGs3QgPlLa7lzAvcPOLEOUsBnZgraLgjgE55c54789',
-    'JeEendAzlSb8UgfofTKMxonN4FRV5fcLWKrhPE7R8ad24cfa',
-    'jeafOiqAB10jmYxFpq2cY0EqxqLTaGrLKYiPWo0f2a5cb676',
-    '4sSNjix9GplJipx200xKD2Jg9yEmdYBZa5bkQgbke9db4719',
-    'aVLxJdWTb5qzHlDNSqA7vlV5WpM2rFghYyxEI0vg6022e2f1'
-];
+const tokens = JSON.parse(open('./tokens.json'));
 
 export default function() {
     const requests = tokens.map(token => ({

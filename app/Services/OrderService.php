@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
@@ -59,6 +60,8 @@ class OrderService
 
         $this->processPayment($order);
         $this->cartService->clearCart($user);
+
+        NotificationAspect::afterOrderCreated($order);
 
         return $order->load('items.product');
     }
@@ -130,11 +133,20 @@ class OrderService
     }
     private function processItem($item, $order, $total)
     {
-        $product = $this->lockAndFetchProduct($item->product_id);
+        // $product = $this->lockAndFetchProduct($item->product_id);
 
-        $this->validateStock($product, $item);
+        $updated = Product::where('id', $item->product_id)
+            ->where('stock', '>', 0)
+            ->decrement('stock', 1);
+        if (!$updated) {
+            throw new Exception("Out of stock");
+        }
 
-        $this->updateStock($product, $item);
+        $product = Product::find($item->product_id);
+
+        // $this->validateStock($product, $item);
+
+        // $this->updateStock($product, $item);
 
         $this->createOrderItem($product, $item, $order);
 
