@@ -50,10 +50,12 @@ class OrderService
         $total = 0;
 
         foreach ($cart->items as $item) {
-            $this->processItemUnsafe($item, $order, $total);
+            $total = $this->processItemUnsafe($item, $order, $total);
         }
 
-        $order->update(['total' => $total]);
+        // $order->update(['total' => $total]);
+        $order->total = $total;
+        $order->save();
 
         $this->processPayment($order);
         $this->cartService->clearCart($user);
@@ -79,13 +81,13 @@ class OrderService
         foreach ($cart->items as $item) {
             $total = $this->processItem($item, $order, $total);
         }
-        
+
 
         // $order->update(['total' => $total]);
 
         $order->total = $total;
         $order->save();
-        
+
         $this->processPayment($order);
 
         $this->cartService->clearCart($user);
@@ -94,7 +96,7 @@ class OrderService
 
         return $order->load('items.product');
     }
-    private function processItemUnsafe($item, $order, &$total)
+    private function processItemUnsafe($item, $order, $total)
     {
         $product = Product::find($item->product_id);
 
@@ -124,8 +126,9 @@ class OrderService
         ]);
 
         $total += $product->price * $item->quantity;
+        return $total;
     }
-    private function processItem($item, $order, &$total)
+    private function processItem($item, $order, $total)
     {
         $product = $this->lockAndFetchProduct($item->product_id);
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Jobs\ProcessDailySalesJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;   
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
@@ -38,3 +39,9 @@ Route::middleware(['auth:sanctum','throttle:api'])->post(
     '/v1/orders/checkout',
     [OrderController::class, 'checkout']
 );
+
+
+Route::get('/redis',function(){
+    Redis::Set('name','mohee');
+    return Redis::get('name');
+});

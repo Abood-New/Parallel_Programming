@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductResource;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
     /**
      * GET /products
      */
-    public function index(Request $request)
-    {
+public function index(Request $request)
+{
+    $cacheKey = 'products:' . md5(json_encode($request->all()));
+
+    $products = Cache::remember($cacheKey, 60, function () use ($request) {
+
         $query = Product::query();
 
-        // Optional filters
         if ($request->has('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
@@ -28,13 +32,14 @@ class ProductController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        $products = $query->paginate(10);
+        return $query->paginate(10)->toArray();
+    });
 
-        return response()->json([
-            'status' => 'success',
-            'data' => ProductResource::collection($products)
-        ]);
-    }
+    return response()->json([
+        'status' => 'success',
+        'data' => $products
+    ]);
+}
 
     /**
      * GET /products/{id}
