@@ -5,20 +5,21 @@ const tokens = JSON.parse(open('./tokens.json'));
 
 export let options = {
   scenarios: {
-    breaking_test: {
-      executor: 'ramping-vus',
+    realistic_users: {
 
-      stages: [
-        { duration: '30s', target: 50 },
-        { duration: '30s', target: 100 },
-        { duration: '30s', target: 200 },
-        { duration: '30s', target: 400 },
-        { duration: '30s', target: 600 },
-      ],
+      executor: 'per-vu-iterations',
 
-      gracefulRampDown: '10s',
+      vus: 100,
+
+      iterations: 1,
+
+      maxDuration: '1m',
     },
-  },
+  }
+      // stages: [
+      //   { duration: '30s', target: 50 },
+      //   { duration: '30s', target: 100 },
+      // ],
 };
 
 function randomProductId() {
@@ -34,11 +35,11 @@ export default function () {
   };
 
   // Browse
-  http.get('http://localhost:8080/api/v1/products', { headers });
+  http.get('http://localhost:8000/api/v1/products', { headers });
 
   // Add to cart
   http.post(
-    'http://localhost:8080/api/v1/cart/add',
+    'http://localhost:8000/api/v1/cart/add',
     JSON.stringify({
       product_id: randomProductId(),
       quantity: 1,
@@ -48,7 +49,7 @@ export default function () {
 
   // Checkout
   const res = http.post(
-    'http://localhost:8080/api/v1/orders/checkout',
+    'http://localhost:8000/api/v1/orders/checkout',
     null,
     { headers }
   );

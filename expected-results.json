@@ -1,0 +1,8 @@
+{
+    "initial_stock": 50,
+    "users": 100,
+    "quantity_per_user": 1,
+    "expected_successful_orders": 50,
+    "expected_failed_orders": 50,
+    "expected_final_stock": 0
+}

@@ -75,7 +75,6 @@ class DatabaseSeeder extends Seeder
         // });
         DB::beginTransaction();
         try {
-
             $products = Product::factory()
                 ->count(300)
                 ->create([
@@ -84,7 +83,7 @@ class DatabaseSeeder extends Seeder
 
             $users = collect();
 
-            for ($i = 1; $i <= 600; $i++) {
+            for ($i = 1; $i <= 100; $i++) {
 
                 $users->push(
                     User::factory()->create([
